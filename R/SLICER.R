@@ -580,13 +580,11 @@ assign_branches <- function (traj_graph, start, min_branch_len = 10, cells = V(t
     return(1)
   }
   path_long <- path_len >= branch_point + 1
-  cell_assignments <- rep(1L, n)
-  cell_assignments[path_long] <- cell_assignments[path_long] +
+  branch_assignments <- rep(1L, n)
+  branch_assignments[path_long] <- cell_assignments[path_long] +
     vapply(paths$vpath[path_long], function(path, table, i) {
       match(path[i], table = table, nomatch = 0L)
     }, FUN.VALUE = integer(1), table = crit_verts, i = branch_point + 1)
-  branch_assignments = sapply(paths$vpath, assign_cell, branch_point,crit_verts) |>
-    as_seq()
   if (max(branch_assignments)-1 > num_branches) {
     # compute once
     cell_dist <- distances(traj_graph, v = cells, to = cells)
