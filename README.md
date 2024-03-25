@@ -5,15 +5,11 @@
 SLICER is an algorithm for constructing trajectories that describe gene expression changes during a sequential biological process. SLICER can capture highly nonlinear gene expression changes, automatically select genes related to the process, and detect multiple branch and loop features in the trajectory. 
 
 ## Installation
-Update: SLICER is now [on CRAN](https://CRAN.R-project.org/package=SLICER)! So you can install it by simply typing 
-```{r,eval=FALSE}
-install.packages("SLICER")
-```
 
 You can also install SLICER from GitHub using devtools
 ```{r,eval=FALSE}
 library("devtools")
-install_github("jw156605/SLICER")
+install_github("jtlandis/SLICER")
 ```
 
 ## Sample Data and Code
