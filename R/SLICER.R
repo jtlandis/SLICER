@@ -568,23 +568,26 @@ assign_branches <- function (traj_graph, start, min_branch_len = 10, cells = V(t
   if (num_branches < 2) {
     return(rep(1, n))
   }
-  assign_cell = function(x, branch_point, crit_verts) {
-    if (length(x) <= branch_point) {
-      return(1)
-    }
-    for (i in 1:length(crit_verts)) {
-      if (which_ind[x[branch_point + 1]] == crit_verts[i]) {
-        return(i + 1)
-      }
-    }
-    return(1)
-  }
+  # assign_cell = function(x, branch_point, crit_verts) {
+  #   if (length(x) <= branch_point) {
+  #     return(1)
+  #   }
+  #   for (i in 1:length(crit_verts)) {
+  #     if (which_ind[x[branch_point + 1]] == crit_verts[i]) {
+  #       return(i + 1)
+  #     }
+  #   }
+  #   return(1)
+  # }
   path_long <- path_len >= branch_point + 1
   branch_assignments <- rep(1L, n)
   branch_assignments[path_long] <- branch_assignments[path_long] +
-    vapply(paths$vpath[path_long], function(path, table, i) {
-      match(path[i], table = table, nomatch = 0L)
-    }, FUN.VALUE = integer(1), table = crit_verts, i = branch_point + 1)
+    vapply(paths$vpath[path_long], function(path, table, i, ind) {
+      match(ind[path[i]], table = table, nomatch = 0L)
+    }, FUN.VALUE = integer(1),
+    table = crit_verts,
+    i = branch_point + 1,
+    ind = which_ind)
   if (max(branch_assignments)-1 > num_branches) {
     # compute once
     cell_dist <- distances(traj_graph, v = cells, to = cells)
@@ -611,25 +614,24 @@ assign_branches <- function (traj_graph, start, min_branch_len = 10, cells = V(t
     }
     
   }
-  while ((max(branch_assignments) - 1) > num_branches) {
-    min_dist = Inf
-    min_i = 0
-    min_j = 0
-    browser()
-    for (i in 3:max(branch_assignments)) {
-      for (j in 2:(i - 1)) {
-        mean_dist = mean(distances(traj_graph,
-                                   v = cells[branch_assignments == i],
-                                   to = cells[branch_assignments == j]))
-        if (!is.nan(mean_dist) && mean_dist < min_dist) {
-          min_dist = mean_dist
-          min_i = i
-          min_j = j
-        }
-      }
-    }
-    branch_assignments[branch_assignments == min_i] = min_j
-  }
+  # while ((max(branch_assignments) - 1) > num_branches) {
+  #   min_dist = Inf
+  #   min_i = 0
+  #   min_j = 0
+  #   for (i in 3:max(branch_assignments)) {
+  #     for (j in 2:(i - 1)) {
+  #       mean_dist = mean(distances(traj_graph,
+  #                                  v = cells[branch_assignments == i],
+  #                                  to = cells[branch_assignments == j]))
+  #       if (!is.nan(mean_dist) && mean_dist < min_dist) {
+  #         min_dist = mean_dist
+  #         min_i = i
+  #         min_j = j
+  #       }
+  #     }
+  #   }
+  #   branch_assignments[branch_assignments == min_i] = min_j
+  # }
   branch_assignments <- as_seq(branch_assignments)
   geodesic_dists = process_distance(traj_graph, start)
   for (i in 1:num_branches) {
