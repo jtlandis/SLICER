@@ -581,7 +581,7 @@ assign_branches <- function (traj_graph, start, min_branch_len = 10, cells = V(t
   }
   path_long <- path_len >= branch_point + 1
   branch_assignments <- rep(1L, n)
-  branch_assignments[path_long] <- cell_assignments[path_long] +
+  branch_assignments[path_long] <- branch_assignments[path_long] +
     vapply(paths$vpath[path_long], function(path, table, i) {
       match(path[i], table = table, nomatch = 0L)
     }, FUN.VALUE = integer(1), table = crit_verts, i = branch_point + 1)
