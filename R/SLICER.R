@@ -102,6 +102,7 @@ min_conn_k = function(traj_exp)
   while (conn_comp > 1)
   {
     k = k + 1
+    cat("trying k =", k, "\n")
     adj_mat = adaptive_knn_graph(traj_dist, rep(k, nrow(traj_exp)))
     traj_graph = graph_from_adjacency_matrix(adj_mat, mode = "undirected", weighted =
                                                TRUE)
@@ -217,8 +218,29 @@ select_genes = function(embedding)
   m = ncol(embedding)
   traj_dist = as.matrix(dist(embedding))
   adj_mat = adaptive_knn_graph(traj_dist, rep(k, n))
-  sel_vals = sapply(1:m, selection_val, embedding, adj_mat)
-  genes = which(sel_vals > 1)
+  # sel_vals = sapply(1:m, selection_val, embedding, adj_mat)
+  # The above is VERY SLOW
+  
+  # cache which indicies we care about to compare neariest
+  # neighbors for each cell
+  adj_ind <- apply(adj_mat, 1, function(x) which(x >0))
+  
+  devs <- matrix(0, n, m)
+  
+  for (row in cli::cli_progress_along(1:n)) {
+    #gets all counts for this cell
+    row_n <- embedding[row, ]
+    #nearest neighbors of this cell
+    row_nn <- embedding[adj_ind[,row],]
+    devs[row,] <- apply(
+      # calc distance
+      (row_nn - rep(row_n, each = k))^2,
+      2, sum
+    )
+  }
+  vars <- apply(embedding, 2, var)
+  sel_vals <- vars/apply(devs, 2, function(dev, n, k) sum(dev)/(n*k -1), n = n, k=k)
+  genes <- which(sel_vals > 1)
   return(genes)
 }
 
@@ -539,7 +561,6 @@ as_seq <- function(vec) {
 #' }
 assign_branches <- function (traj_graph, start, min_branch_len = 10, cells = V(traj_graph))
 {
-
   n = length(cells)
   which_ind <- integer(length(V(traj_graph)))
   which_ind[cells] <- 1:n
